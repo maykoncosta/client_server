@@ -38,14 +38,21 @@ st.header('Divirta-se no forum', divider='rainbow')
 st.subheader('Projeto válido para :blue[Sistemas Distribuidos] :sunglasses:')
 username = st.text_input('Nome de usuário')
 message = st.text_input('O que você está pensando?')
-if st.button('Postar'):
-    add_post(username, message)
-    st.balloons()
-    username = ""
-if st.button('Atualizar'):
-    get_posts()
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if st.button('Postar'):
+        add_post(username, message)
+        st.balloons()
+
+with col2:        
+    if st.button('Atualizar'):
+        get_posts()
+
+with col3:
+    if st.button('Limpar todas as mensagens'):
+        clear_posts()
     
-# botão para limpar todas as mensagens
-if st.button('Limpar todas as mensagens'):
-    clear_posts()
+    
 get_posts()
