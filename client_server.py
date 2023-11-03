@@ -36,23 +36,88 @@ def clear_posts():
 st.title(':violet[Fórum]')
 st.header('Divirta-se no forum', divider='rainbow')
 st.subheader('Projeto válido para :blue[Sistemas Distribuidos] :sunglasses:')
-username = st.text_input('Nome de usuário')
-message = st.text_input('O que você está pensando?')
 
-col1, col2, col3 = st.columns(3)
+# Função para adicionar um novo usuário ao Firestore
+def add_user(username, password):
+    doc_ref = db.collection('users').document(username)
+    doc_ref.set({
+        'password': password,
+        'logged_in': False
+    })
 
-with col1:
-    if st.button('Postar'):
-        add_post(username, message)
-        st.balloons()
+# Função para verificar se um usuário existe no Firestore
+def user_exists(username):
+    doc_ref = db.collection('users').document(username)
+    return doc_ref.get().exists
 
-with col2:        
-    if st.button('Atualizar'):
-        get_posts()
+# Função para verificar as credenciais do usuário
+def check_credentials(username, password):
+    if user_exists(username):
+        doc_ref = db.collection('users').document(username)
+        return doc_ref.get().to_dict()['password'] == password
+    return False
 
-with col3:
-    if st.button('Limpar todas as mensagens'):
-        clear_posts()
+# Função para definir o estado de login do usuário
+def set_login_state(username, state):
+    doc_ref = db.collection('users').document(username)
+    doc_ref.update({
+        'logged_in': state
+    })
+
+# Função para obter o estado de login do usuário
+def get_login_state(username):
+    if not username:
+        return False
+    if user_exists(username):
+        doc_ref = db.collection('users').document(username)
+        return doc_ref.get().to_dict()['logged_in']
+    return False
+
+# Se o usuário não estiver logado, mostre a tela de login e cadastro
+username = ''
+if not get_login_state(username):
+    username = st.text_input('Nome de usuário')
+    password = st.text_input('Senha', type='password')
+
+    colunaLogin, colunaCadastro = st.columns(2)
+
+    with colunaLogin:   
+        if st.button('Login'):
+            if check_credentials(username, password):
+                set_login_state(username, True)
+                st.success('Login bem sucedido!')
+            else:
+               st.error('Nome de usuário ou senha incorretos.')
+
+    with colunaCadastro:
+        if st.button('Cadastrar'):
+            if user_exists(username):
+                st.error('Nome de usuário já existe.')
+            else:
+                add_user(username, password)
+                st.success('Usuário cadastrado com sucesso!')
+
+
+if username and password and get_login_state(username):
+
+        
+    message = st.text_input('O que você está pensando??')
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button('Postar'):
+            add_post(username, message)
+            st.balloons()
+
+    with col3:
+        if st.button('Limpar todas as mensagens'):
+            clear_posts()
     
+    if st.button('Sair'):
+        set_login_state(username, False)
+        username = ''
+        password = ''
     
-get_posts()
+    st.divider()
+    get_posts()
+
