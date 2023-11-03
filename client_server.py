@@ -20,13 +20,14 @@ def add_post(username, message):
         'timestamp': datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     })
 
-# Função para obter posts do Firestore
+# Obter posts do Banco
 def get_posts():
     posts = db.collection('posts').stream()
     for post in posts:
         with st.chat_message("user"):
             st.write(f"{post.to_dict()['username']} ({post.to_dict()['timestamp']}): :green[{post.to_dict()['message']}]")
 
+# Limpar posts do Banco
 def clear_posts():
     docs = db.collection('posts').stream()
     for doc in docs:
@@ -37,7 +38,7 @@ st.title(':violet[Fórum]')
 st.header('Divirta-se no forum', divider='rainbow')
 st.subheader('Projeto válido para :blue[Sistemas Distribuidos] :sunglasses:')
 
-# Função para adicionar um novo usuário ao Firestore
+# Adicionar novo usuario no Banco
 def add_user(username, password):
     doc_ref = db.collection('users').document(username)
     doc_ref.set({
@@ -45,12 +46,12 @@ def add_user(username, password):
         'logged_in': False
     })
 
-# Função para verificar se um usuário existe no Firestore
+# Verificar se um usuário existe no Banco
 def user_exists(username):
     doc_ref = db.collection('users').document(username)
     return doc_ref.get().exists
 
-# Função para verificar as credenciais do usuário
+# Verificar as credenciais do usuário
 def check_credentials(username, password):
     if user_exists(username):
         doc_ref = db.collection('users').document(username)
@@ -97,7 +98,7 @@ if not get_login_state(username):
                 add_user(username, password)
                 st.success('Usuário cadastrado com sucesso!')
 
-
+# Mostrar se usuario estiver logado
 if username and password and get_login_state(username):
 
         
